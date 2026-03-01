@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   # ── Vim Options ──────────────────────────────────────────────────────────────
   opts = {
@@ -134,6 +134,80 @@
       '';
       options.desc = "Tree: toggle git changed files only";
     }
+
+    # ── Debugging (DAP) ──
+    {
+      mode = "n";
+      key = "<leader>db";
+      action.__raw = ''function() require("dap").toggle_breakpoint() end'';
+      options.desc = "Debug: toggle breakpoint";
+    }
+    {
+      mode = "n";
+      key = "<leader>dB";
+      action.__raw = ''function() require("dap").set_breakpoint(vim.fn.input("Breakpoint condition: ")) end'';
+      options.desc = "Debug: conditional breakpoint";
+    }
+    {
+      mode = "n";
+      key = "<leader>dc";
+      action.__raw = ''function() require("dap").continue() end'';
+      options.desc = "Debug: continue";
+    }
+    {
+      mode = "n";
+      key = "<leader>dl";
+      action.__raw = ''function() require("dap").run_last() end'';
+      options.desc = "Debug: run last";
+    }
+    {
+      mode = "n";
+      key = "<leader>di";
+      action.__raw = ''function() require("dap").step_into() end'';
+      options.desc = "Debug: step into";
+    }
+    {
+      mode = "n";
+      key = "<leader>do";
+      action.__raw = ''function() require("dap").step_over() end'';
+      options.desc = "Debug: step over";
+    }
+    {
+      mode = "n";
+      key = "<leader>dO";
+      action.__raw = ''function() require("dap").step_out() end'';
+      options.desc = "Debug: step out";
+    }
+    {
+      mode = "n";
+      key = "<leader>dr";
+      action.__raw = ''function() require("dap").repl.toggle() end'';
+      options.desc = "Debug: toggle REPL";
+    }
+    {
+      mode = "n";
+      key = "<leader>du";
+      action.__raw = ''function() require("dapui").toggle() end'';
+      options.desc = "Debug: toggle UI";
+    }
+    {
+      mode = "n";
+      key = "<leader>dx";
+      action.__raw = ''function() require("dap").terminate() end'';
+      options.desc = "Debug: terminate";
+    }
+    {
+      mode = "n";
+      key = "<leader>dt";
+      action.__raw = ''function() require("dap-go").debug_test() end'';
+      options.desc = "Debug: nearest Go test";
+    }
+    {
+      mode = "n";
+      key = "<leader>dT";
+      action.__raw = ''function() require("dap-go").debug_last_test() end'';
+      options.desc = "Debug: last Go test";
+    }
   ];
 
   # ── Autocommands ─────────────────────────────────────────────────────────────
@@ -168,6 +242,26 @@
       '';
     }
   ];
+
+  extraConfigLua = ''
+    local dap = require("dap")
+    local dapui = require("dapui")
+
+    dap.listeners.after.event_initialized["dapui_config"] = function()
+      dapui.open()
+    end
+    dap.listeners.before.event_terminated["dapui_config"] = function()
+      dapui.close()
+    end
+    dap.listeners.before.event_exited["dapui_config"] = function()
+      dapui.close()
+    end
+
+    -- Load project-level launch configs for flexible Go debugging profiles.
+    pcall(function()
+      require("dap.ext.vscode").load_launchjs(nil, { go = { "go" } })
+    end)
+  '';
 
   # ── Colorscheme ──────────────────────────────────────────────────────────────
   colorschemes.catppuccin = {
@@ -345,6 +439,34 @@
     # ── Diagnostics ──
     trouble.enable = true;
 
+    # ── Debugging ──
+    dap = {
+      enable = true;
+      signs = {
+        dapBreakpoint.text = "●";
+        dapBreakpointCondition.text = "◆";
+        dapLogPoint.text = "◆";
+        dapStopped.text = "▶";
+        dapBreakpointRejected.text = "";
+      };
+    };
+    dap-ui.enable = true;
+    dap-virtual-text.enable = true;
+    dap-go = {
+      enable = true;
+      settings = {
+        delve.path = lib.getExe pkgs.delve;
+        dap_configurations = [
+          {
+            type = "go";
+            name = "Attach remote";
+            mode = "remote";
+            request = "attach";
+          }
+        ];
+      };
+    };
+
     # ── Markdown ──
     render-markdown = {
       enable = true;
@@ -359,5 +481,6 @@
     stylua
     black
     lazygit
+    delve
   ];
 }
