@@ -3,9 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    flake-parts = {
+      url = "github:hercules-ci/flake-parts?rev=57928607ea566b5db3ad13af0e57e921e6b12381";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
 
     nixvim = {
       url = "github:nix-community/nixvim";
+      inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
     };
   };
