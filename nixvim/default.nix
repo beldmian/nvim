@@ -257,10 +257,6 @@
       dapui.close()
     end
 
-    -- Load project-level launch configs for flexible Go debugging profiles.
-    pcall(function()
-      require("dap.ext.vscode").load_launchjs(nil, { go = { "go" } })
-    end)
   '';
 
   # ── Colorscheme ──────────────────────────────────────────────────────────────
